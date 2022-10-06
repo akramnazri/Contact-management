@@ -5,15 +5,18 @@ import * as Contacts from 'expo-contacts';
 import { Button, StyleSheet, Text, TouchableOpacity, View, SafeAreaView, ScrollView, FlatList } from 'react-native';
 import { Avatar, Icon, ListItem, SearchBar } from 'react-native-elements';
 import { useSelector, useDispatch } from 'react-redux';
-
+import { deleteId, setId} from '../redux/actions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen =({navigation})=> {
     const { id } = useSelector(state=>state.userReducer);
     let [error, setError] = useState(undefined);
     let [contacts, setContactData] = useState(undefined);
     const [SearchData, setSearchData] = useState('');
+    const dispatch = useDispatch();
 
     useEffect(()=>{
+        getLocalItem();
         (async () => {
             const { status } = await Contacts.requestPermissionsAsync();
             if( status === 'granted') {
@@ -32,6 +35,24 @@ const HomeScreen =({navigation})=> {
         })();
     },[]);
 
+    const getLocalItem = async () => {
+        // get Data from Storage
+    try {
+        const data = await AsyncStorage.getItem('@contactid');
+        if (data !== null) {
+            
+            let arr = JSON.parse(data); 
+            arr.map((v,i)=>
+                dispatch(setId(v))
+            ); 
+            console.log(arr)
+        }
+      } catch (error) {
+        console.log(error);
+      }
+     
+    }
+
 
       const getlistdatafav = () => {
         // console.log(item)
@@ -40,7 +61,7 @@ const HomeScreen =({navigation})=> {
             return ( 
             <View style={styles.contact}>
                 <ListItem
-                    key = {index}
+                    key = {item.id}
                     onPress={() =>
                             navigation.navigate('View Contact',{
                             contactData: item})}
@@ -81,7 +102,7 @@ const HomeScreen =({navigation})=> {
             return ( 
             <View style={styles.contact}>
                 <ListItem
-                    key = {index}
+                    key = {item.id}
                     onPress={() =>
                             navigation.navigate('View Contact',{
                             contactData: item})}

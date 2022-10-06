@@ -4,6 +4,7 @@ import {useState, useEffect, Component} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setId,deleteId } from '../redux/actions';
 import { Avatar, Image } from 'react-native-elements';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const ContactDetails = ({route, navigation}) => {
@@ -11,6 +12,10 @@ const ContactDetails = ({route, navigation}) => {
     const dispatch = useDispatch();
     const { contactData } = route.params;
     const [details, setDetails] = useState(false);
+
+    useEffect(() => {
+        addLocal();
+      }, [id]);
 
     let getContactData = (data, property) => {
         if (data) {
@@ -24,12 +29,40 @@ const ContactDetails = ({route, navigation}) => {
         }
       }
 
+      const addLocal = async () => {
+        try{
+            await AsyncStorage.removeItem('@contactid');
+            await AsyncStorage.setItem('@contactid', JSON.stringify(id));
+        }catch(e){
+
+        }
+      }
+      
+
     const addFav = () =>{
         dispatch(setId(contactData.id));
     }
 
     const deleteFav = () =>{
         dispatch(deleteId(contactData.id));
+    }
+
+    const getLocalItem = async () => {
+        // get Data from Storage
+    try {
+        const data = await AsyncStorage.getItem('@contactid');
+        if (data !== null) {
+            
+            let arr = JSON.parse(data); 
+            // arr.map((v,i)=>
+            //     dispatch(setId(v))
+            // ); 
+            console.log(arr)
+        }
+      } catch (error) {
+        console.log(error);
+      }
+     
     }
   
 // detail main page
@@ -47,7 +80,7 @@ const ContactDetails = ({route, navigation}) => {
                 {contactData.birthday ? <Text style={styles.text}>Birthday: {contactData.birthday.month}/{contactData.birthday.day}/{contactData.birthday.year}</Text> : undefined}
                 {getContactData(contactData.phoneNumbers, "number")}
                 {getContactData(contactData.emails, "email")}
-                <View style={{flexDirection:'row'}}>
+                <View style={{flexDirection:'row',marginTop:10}}>
                 <TouchableOpacity style={styles.button} onPress={addFav}>
                     <Text style={styles.buttonText}>
                         Set Favourite
@@ -58,6 +91,11 @@ const ContactDetails = ({route, navigation}) => {
                         Delete Favourite
                     </Text>
                 </TouchableOpacity></View>
+                {/* <TouchableOpacity style={styles.buttonDel} onPress={getLocalItem}>
+                    <Text style={styles.buttonText}>
+                        cek Favourite
+                    </Text>
+                </TouchableOpacity> */}
             </View>
         )}
     </View>);
